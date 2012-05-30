@@ -1,0 +1,339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta name="viewport" content="width=500; initial-scale=1; user-scalable=true;"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+	<title>qrext: QR codes with ExtJS demo</title>
+	<link rel="stylesheet" type="text/css" href="../ext/resources/css/ext-all.css" />
+	<style type="text/css">
+		body, h1, br { padding:1em }
+		#descr {width: 500px;}
+	</style>
+	<script type="text/javascript" src="../ext/ext-all.js"></script>
+	<script type="text/javascript" src="qrext.js"></script>
+</head>
+<body>
+<h1>Creating QR codes with ExtJS</h1>
+<div id="descr">
+ Pure JS, no external ressources required. Based on the work of Kazuhiko Arase, adapted to ExtJS V4 2012 by Volker Kinkelin (magnalox at gmail dot com).
+ <br/><br/>Note: QR-formats are not fully standardized, see <a href="http://code.google.com/p/zxing/wiki/BarcodeContents" target="_blank">http://code.google.com/p/zxing/wiki/BarcodeContents</a>.
+ <br/>The zxing <a href="https://play.google.com/store/apps/details?id=com.google.zxing.client.android&hl=en" target="_blank">Android scanner app</a> worked fine.
+ <br/><br/>Click or tab a QR-code for maximal readability on a full screen display.
+</div>
+<script type="text/javascript" >
+
+Ext.onReady(function () {
+	
+	//
+	// direct creation of a naked qrpanel into the document body:
+	//
+	Ext.create('Ext.ux.QrPanel', {
+		
+		renderTo : Ext.getBody(),
+		margin : 20, // blank frame around
+		textToEncode : 'UTF-8 encoded chars:\n©öäüÖÄÜß²@½',
+		typeNumber : 2
+		
+	});
+	
+	//
+	// window having a QR code child:
+	//
+	Ext.create('Ext.Window', {
+		
+		title : 'Drag & scale',
+		layout : 'fit',
+		autoShow : true,
+		x : 200,
+		y : 170,
+		items : {
+			
+			xtype : 'qrpanel',
+			textToEncode : 'QR is easy'
+			
+		}
+		
+	});
+	
+	//
+	// QR panel with all options:
+	//
+	Ext.create('Ext.ux.QrPanel', {
+		
+		// mandatory configs:
+		renderTo : Ext.getBody(), // where to render, if not used as a child item
+		textToEncode : 'Hello QR', // text to encode in the pattern, max 271 chars, when
+		// qrErrorCorrectLevel = QRErrorCorrectLevel.L (= default), otherwise less
+		
+		// optional configs:
+		title : 'Collapsible', // show a title bar
+		collapsible : true, // user can collapse this		
+		margin : 20, // blank frame around
+		
+		qrRenderMethod : 'canvas', // rendering method 'canvas' or 'divs'.
+		// default = 'canvas', if supported by browser. Otherwise 'divs'
+		
+		typeNumber : 2, // specifies the # of blocks in the code. block count = (typeNumber * 4 + 17).
+		// between 1 and 10. overall width/height in pixels =  block count  * qrBlocksize.
+		// increase, in case of error  or no display(check console!).
+		// if not specified and qrErrorCorrectLevel = QRErrorCorrectLevel.L (= default)
+		
+		qrBlocksize : 4, // width [pixels] of an individual block
+		
+		
+		qrErrorCorrectLevel : 'L', // defines the redundancy in the code.
+		// one of xxx.L (=default), xxx.M, xxx.Q, xxx.H = most redundant
+		
+		qrBackgroundColor : '#000', // CSS color for background. default = black
+		
+		qrForegroundColor : '#fff', // CSS color for foreground. default = white
+		
+		qrNoClickHandler : false // true, if clicks should not be handeled by qrpanel. default = true
+		
+	}).collapse();
+	
+	//
+	// form to enter QRs properties
+	//
+	
+	var myForm = Ext.create('Ext.form.Panel', {
+			
+			width : 540,
+			margin : 20,
+			bodyPadding : 10,
+			renderTo : Ext.getBody(),
+			defaults : {
+				labelAlign : 'right'
+			},
+			items : [{
+					xtype : 'textfield',
+					id : 'textToEncode',
+					fieldLabel : 'Text To Encode',
+					allowBlank : false,
+					value : 'Hello QR World',
+					anchor : '100%'
+				}, {
+					xtype : 'radiogroup',
+					fieldLabel : 'Render QR as',
+					id : 'qrRenderMethod',
+					width : 300,
+					items : [{
+							boxLabel : 'Canvas',
+							name : 'rm',
+							inputValue : 'canvas',
+							checked : Ext.supports.Canvas
+						}, {
+							boxLabel : 'Series of DIVs',
+							name : 'rm',
+							inputValue : 'divs',
+							checked : !Ext.supports.Canvas
+						}
+					]
+				}, {
+					xtype : 'numberfield',
+					fieldLabel : 'Block Size',
+					id : 'qrBlocksize',
+					value : 4,
+					minValue : 1,
+					width : 160
+				}, {
+					xtype : 'numberfield',
+					fieldLabel : 'Type Number',
+					id : 'typeNumber',
+					value : 1,
+					minValue : 1,
+					maxValue : 10,
+					width : 160
+				}, {
+					xtype : 'button',
+					text : 'Encode',
+					margin : '8 8 8 105',
+					handler : function () {
+						
+						// define default qr panel configuration configs
+						var qrItem = {
+							
+							xtype : 'qrpanel',
+							textToEncode : Ext.getCmp('textToEncode').getValue(),
+							typeNumber : Ext.getCmp('typeNumber').getValue(),
+							qrBlocksize : Ext.getCmp('qrBlocksize').getValue(),
+							qrRenderMethod : Ext.getCmp('qrRenderMethod').getValue().rm
+							
+						};
+						
+						// create & show window
+						Ext.create('Ext.Window', {
+							
+							title : qrItem.textToEncode,
+							bodyStyle : 'border:none;', // no border around body
+							layout : 'fit', // extjs do the resizing
+							items : qrItem // the only item is the QR
+							
+						}).show(this); // show with animation from button
+						
+					} // button handler
+					
+				} // create button
+			, {
+					xtype : 'component',
+					html : 'Preset Examples:'
+				}
+			]// form panel items
+			
+		}); // Ext.create('Ext.form.Panel', {
+	
+	//
+	// create buttons using local helper function that creates an
+	// extjs button which opens a window showing a qrpanel
+	//
+	
+	var buttFact = function (buttText, qrConfig) {
+		
+		myForm.add({
+			
+			xtype : 'button',
+			text : buttText,
+			renderTo : Ext.getBody(),
+			margin : 8,
+			handler : function () {
+				
+				// define default qr panel configuration configs
+				var qrItem = {
+					
+					xtype : 'qrpanel', // the extension's name
+					// get render method from form, if not specified
+					qrRenderMethod : qrConfig.qrRenderMethod || Ext.getCmp('qrRenderMethod').getValue().rm,
+					qrBlocksize : 4
+					
+				};
+				
+				// overwrite defaults with caller's config
+				Ext.apply(qrItem, qrConfig);
+				
+				// show ma params in the form
+				Ext.getCmp('textToEncode').setValue(qrItem.textToEncode);
+				Ext.getCmp('qrBlocksize').setValue(qrItem.qrBlocksize);
+				Ext.getCmp('typeNumber').setValue(qrItem.typeNumber);
+				
+				// create & show window
+				Ext.create('Ext.Window', {
+					
+					title : buttText,
+					bodyStyle : 'border:none;', // no border around body
+					layout : 'fit', // extjs do the resizing
+					items : qrItem // the only item is the QR
+					
+				}).show(this); // show with animation from button
+				
+			} // handler
+			
+		}); // Ext.create('Ext.button.Button', {
+		
+	}; // var buttFact = function( buttText, qrConfig  ) {
+	
+	// email with address, subject and body
+	buttFact('E-Mail', {
+		
+		textToEncode : 'MATMSG:TO:magnalox@gmail.com;SUB:qrext test;BODY:I like qrext;;',
+		typeNumber : 6
+		
+	});
+	
+	// contact having a german ß
+	buttFact('Contact', {
+		
+		textToEncode : 'MECARD:N: Merkel, Angela; ADR:Willy-Brandt-Straße 1, 10557 Berlin; TEL: 004930 18 272-0; EMAIL: internetpost@bpa.bund.de',
+		typeNumber : 6
+		
+	});
+	
+	// lat/lng GPS coordinates
+	buttFact('Geocoordinates', {
+		
+		textToEncode : 'geo:47.403618,9.939816',
+		typeNumber : 2
+		
+	});
+	
+	// link to android market
+	buttFact('Android Market', {
+		
+		textToEncode : 'market://details?id=com.google.zxing.client.android',
+		typeNumber : 3
+		
+	});
+	
+	// girlie SMS for the short-sighted
+	buttFact('SMS', {
+		
+		textToEncode : 'smsto:00491234567:Hello Barbie!',
+		qrBlocksize : 18, // we like it huge...
+		qrBackgroundColor : '#A00', // ...and colorful...
+		qrForegroundColor : 'pink', // ...,barbielike...
+		qrErrorCorrectLevel : 'H', // ...and redundant...
+		typeNumber : 4 // ... and spacious
+		
+	});
+	
+	// call nmuber, little space
+	buttFact('Phonenumber', {
+		
+		textToEncode : 'tel:004976543111',
+		typeNumber : 1 // keep it small
+		
+	});
+	
+	// add to calendar, needs more space
+	buttFact('Calendar Entry', {
+		
+		textToEncode : 'BEGIN:VEVENT\nSUMMARY:Woodstock\nDTSTART:19690815T101200Z\nDTEND:19690818T204000Z\nLOCATION:Bethel\nDESCRIPTION:love \'n peace\nhalleluja\nEND:VEVENT',
+		typeNumber : 7 // large code needed here
+		
+	});
+	
+	// encode longer text in smaller blocks
+	buttFact('Long Text', {
+		
+		textToEncode : 'Lines break\nand size matters.\nLorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat.',
+		qrBlocksize : 4,
+		typeNumber : 10 // very large code needed here
+		
+	});
+	
+	// fancy WiFi parameters
+	buttFact('WiFi Parameters', {
+		
+		textToEncode : 'WIFI:S:barbieland;T:WPA;P:kennyboy;;',
+		typeNumber : 4
+		
+	});
+	
+	// ...and now some artwork, may drive your scanner crazy. unsupported hack of CSS props
+	buttFact('Browser Mosaic Browser', {
+		
+		textToEncode : 'This is QR-Art',
+		typeNumber : 1,
+		qrBlocksize : 22,
+		qrBackgroundColor : '#008',
+		qrForegroundColor : '#0F0',
+		qrCssTempl : '#{3} .QB, #{3} .QW {background-color:{0}; width:{1}; height:{1}; float:left; box-shadow:2px 2px 6px #44F inset; border-radius:4px} #{3} .QW {background-color:{2};} .QRE {clear:both} .QRContainer {display:inline-block}',
+		qrRenderMethod : 'divs' // force render method
+		
+	});
+	
+	// ...QR within a QR
+	buttFact('recursive', {
+		
+		textToEncode : 'QR within QR',
+		typeNumber : 1,
+		qrBlocksize : 21,
+		qrCssTempl : '#{3} .QB, #{3} .QW {background: #000 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVCAYAAACpF6WWAAAAmUlEQVQ4jZ1TWw7AIAjj/pdmX0sY9uVIFoXZWkCqqlp8r/VY9x7iJnjaJmUXQRy62amzOEe6z6DYL1JEHJFuc3FbU9X9RCF7NdRYoyJQokCRN3KYirTmB56pRACpcPourSQDmJGbHCRArdLUZFHCm3eqpugTSybHPa2Dw82+itEzjnSDthh45kYpIzv8pKbqP1V60wy1dlX1Axxt4R8sxSmXAAAAAElFTkSuQmCC) no-repeat center; width:{1}; height:{1}; float:left;} #{3} .QW {background-color:#fff;} .QRE {clear:both} .QRContainer {display:inline-block}',
+		qrRenderMethod : 'divs' // force render method
+		
+	});
+	
+}); // Ext.onReady(function () {
+
+</script>
+</body>
+</html>

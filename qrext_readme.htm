@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta name="viewport" content="width=device-width; initial-scale=1.0; user-scalable=true;"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+	<title>qrext: QR codes with ExtJS readme</title>
+	<style type="text/css">
+		body, h1, h2, p, th, li { padding:0.5em; font-size: 9pt; font-family: Verdana;}
+		body { width:760px; }
+		h1 { font-size:14pt; }
+		h1, h2 { background-color:#eee}
+	</style>
+</head>
+<body>
+<h1>QRExt:  QR Codes With ExtJS</h1>
+
+ QRExtis  <a target="_blank" href="http://www.sencha.com">ExtJS</a> extension to create QR patterns, which can be read by most modern smartphones by using the camera and a scanner application. 
+ The codes are generated locally by the browser using only JavaScript, without any external ressources.<br/>
+ <br/>QR codes can contain text, URLs, contacts, events, geo-coordinates, SMSes, WiFi parameters etc.<br/>
+ The extension works on most smartphone browsers too.
+<div style="padding: 20px 120px 0 0; height:99px; background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAABjCAYAAACPO76VAAADDElEQVR4nO2UQW7FMBBCc/9Lt9tW+o7BQOL8gJSNNWaYeVaO4zh+At9fpe+yQnqxPra9Fcb5OeJTGMTiRp7IOeITgaHItaC74CkwFBWGIX9hfPhYH1f+S2Eoi4Aak+fKspS+iD/SF+pVGIUhDYaoMCYDIP6ueiQbMqPrARXGJFthTPxd9Ui2wiD8lV4uYGx9YUz82TxKfWFM/Nk8Sn0EBitlQexgiL9Sn4AN+RRGYdDnr4Ph+pDQ33Ru21th6OeFsdF5Ym8RsY3ZpST63rastApjIxUGIaQxW4P0YvMo/99EZhekfz6FURhQzathuAK5wCieyrKUbOyDLgxDL7ZvYRD+rmwSjIRpAtJdMFyedM7COPcpjMW7j4ShLFFZHCtXzkQ2W4bC8KowiDyPgYGcu0Ig/umHwmZQskH7LIzCKAymmWsA1xJZuTK7ZoE8C+O8vjAm/ogeD4NtnKgf6coHgdS4/CHTwjivKQzi7uNhSEYmTwTelY8gMdfwvDCun2t4XhjXzzU8TwyZuIsM6YKtZFYyFIY5c2EQdx8Dgx2SXRwSjq1XFsFmcIEZ9ioMPENhTOpfASNdwz4CdunpbIm+hbGYLdG3MBazJfpKi97t3HV3VM8+DhpwYZyrMBbPXXdH9XEY6cYuT0QuSEi2tGdhENnSnoVBZIt47jCwq+bKRxDpVRiFURifeilLQQZwLR05R6TMotRAkArjmprCIHKma2wwkAas6KCkJ1uTzgB5FgaeR8lQGETNdjBcHxtCWYSrhs3j2k+8MeLPZkDyKzVsnsKY5Fdq2DwRGGm5Fu0Cj/RCztnMrpySCqMwngkDGZj9WKWXzvqwGZRsUqDCWPOEVBibwlDE+iihXctKZ6PPCyOXjT4vjFw2+pz997mGdwFgl6v4sx+twsD9C2MxD9vr1TDYXgoAZVmuu5BnYZyrMIhP8UT0VTCQoK4hFf9ETWEs+hfGxBO56/LfGgarBCSXv2vGkafyoAvDoMJY9H8kDNc3CqQMuUMGxVNqvNsidsigeEqNd1vEDhkUz6l+AdlepmW8vlTQAAAAAElFTkSuQmCC) no-repeat right top">
+ QRExt is based on the work of <a href="http://www.d-project.com/">Kazuhiko Arase</a>, adapted and interfaced to ExtJS V4 2012 by Volker Kinkelin. 
+ Licensed under the <a href="http://www.opensource.org/licenses/mit-license.php" target="_blank">MIT license</a>. "QR Code" is a registered trademark of <a target="_blank" href="http://www.denso-wave.com/qrcode/faqpatent-e.html">DENSO WAVE INCORPORATED</a>
+<br/><br/>Contact me by scanning the code to the right.</div>
+
+<h2>Version History</h2>
+<table>
+<tr><th>Date</th><th>Version</th><th>Description</th></tr>
+<tr><td>5 March 2012</td><td>1.0</td><td>Initial release</td></tr>
+<tr><td></td><td></td><td></td></tr>
+</table>
+
+<h2>Using grext</h2>
+<ul>
+<li>The package contains three files: 
+ <ol><li>qrext.js = the JS code to be included</li>
+ <li>qrext_demo.htm = example and documentation for the parameters.
+  <br/>It expects to be in the same directory as qrext.js and ../ext/ext-all.js in a sibling-directory.
+ </li>
+ <li>qrext_readme.htm = this file.</li> 
+ </ol>
+</li>
+<li>To create QR codes with ExtJS load qrext.js after extjs was loaded: 
+<br/>&nbsp;<code>&lt;script type="text/javascript" src="qrext.js"&gt;&lt;/script&gt;</code>
+<br/><br/>You can use any directory structure, as long as your visitors browser find the file. There are no external dependencies from within the extension.</li>
+<li>qrext is derived from the Ext.panel.Panel class. Most configs, properties and methods of the panel class should work with qrext too.<br/>
+You can embed it just like any other panel in containers, panels, windows, viewports, tabs etc.<br/>
+See qrext_demo.htm included in the package for examples and parameter description.</li>
+<li>The QR codes scale on click to the maximum size possible and mask the page to achive maximum reading performance.
+On a second click or a keypress they shrink back to their original size and position.
+<br/>You can prevent this by specifying <code>qrNoClickHandler= true</code></li>
+<li>The extension creates QRs by rendering into an HTML canvas or as a series of colored DIVs.<br/><br/>
+	Pros &amp; cons of both methods:<br/>
+	<br/>DIV rendering:
+	<ul style="list-style-type:none">
+	<li>+ works even on older, non canvas-aware browsers</li>
+	<li>+ can be saved as plain HTML text code</li>
+	<li>+ never blur when scaled</li>
+	<li>+ can be modified by CSS</li>
+	<li>- slower</li>
+	<li>- can lead to large DOM trees</li>
+	</ul>
+	<br/>CANVAS rendering:
+	<ul style="list-style-type:none">
+	<li>+ faster</li>
+	<li>+ need less memory</li>
+	<li>+ don't need CSS</li>
+	<li>- blur when scaled</li>
+	</ul>
+	The extension prefers canvas rendering, if the browser supports it and not configured otherwise.
+</li>
+<li> Tested with ExtJS V 4.0.7 and against V4.1B3</li>
+</ul>
+
+<h2>Useful web-ressources for QR-codes:</h2>
+<ul>
+<li><a href="http://code.google.com/p/zxing/" target="_blank">Excellent free Android scanner application for barcodes of all kinds</a> <a href="market://details?id=com.google.zxing.client.android" target="_blank">Android Market</a></li>
+<li><a href="http://code.google.com/p/zxing/wiki/BarcodeContents" target="_blank">Informations about text formats within qrcodes</a></li>
+<li><a href="http://www.denso-wave.com/qrcode/vertable1-e.html" target="_blank">Denso Wave about QR codes</a></li>
+
+</ul>
+End Of Document
+<hr/>
+</body>
+</html>
