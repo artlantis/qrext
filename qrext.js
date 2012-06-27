@@ -589,7 +589,7 @@ var qrcode = function () {
 
 			var domCanvas; // = where to draw on
 
-			// canvas specified as string or DOM node?
+			// canvas specified as ID [string] or DOM node?
 			switch (typeof args.divCanvas) {
 
 			case 'string':
@@ -654,6 +654,7 @@ var qrcode = function () {
 			}
 
 			return 0; // = success
+
 		}; // _this.drawOnCanvas = function (args) {
 
 		//---------------------------------------------------------------------
@@ -662,7 +663,6 @@ var qrcode = function () {
 
 		return _this;
 	};
-
 
 	//---------------------------------------------------------------------
 	// qrcode.stringToBytes
@@ -1863,10 +1863,11 @@ var qrcode = function () {
 }
 ();
 
-
 // ==========================================
 // ExtJS user extension interface
 // (c) 2012 by Volker Kinkelin
+//  V1.1 June 27 2012
+//  see http://code.google.com/p/qrext/
 // Licensed under the MIT license:
 //   http://www.opensource.org/licenses/mit-license.php
 // ==========================================
@@ -1874,27 +1875,27 @@ var qrcode = function () {
 Ext.define('Ext.ux.QrPanel', {
 
 	extend : 'Ext.panel.Panel',
-
 	alias : 'widget.qrpanel',
 
 	initComponent : function () {
 
 		var me = this;
 
-		me.callParent();
+		me.callParent(arguments);
 
 		// establish reasonable default parameters
 		Ext.applyIf(me, {
 
 			qrBackgroundColor : '#000', // CSS color for background. black
 			qrForegroundColor : '#fff', // CSS color for foreground. white = max contrast
-			qrNoClickHandler : false, // true, if clocks sholdnd be handeled by qrpanel
+			qrNoClickHandler : false, // true, if clicks shouldnt be handeled by qrpanel (click = start fullscreen mode)
+			qrDisplayTextWhenFullscreen : true, // display textToEncode when in full screen mode
 			qrBlocksize : 4, // width [pixels] of an individual block
 			qrRenderMethod : (Ext.supports.Canvas ? 'canvas' : 'divs'), // prefer canvas rendering, if supported
 			qrCssTempl : '.QRContainer {display:inline-block} #{3} .QB, #{3} .QW {background-color:{0}; width:{1}; height:{1}; float:left;} #{3} .QW {background-color:{2};} .QRE {clear:both}',
+
 			typeNumber : -1, // defines the number of blocks in the code. Number = typeNumber * 4 + 17 blocks.
-			// If set too small, the library throws an error and displays nothing (watch console).
-			// Preset to reasonable value.
+			// If set too small, the library throws an error and displays nothing (watch JS console).
 
 			qrErrorCorrectLevel : 'L', // defines the redundancy in the code. One of L, M, Q, H = most redundant
 
@@ -1905,20 +1906,21 @@ Ext.define('Ext.ux.QrPanel', {
 		// no Type Number given, find one yourself
 		if (me.typeNumber == -1)
 			me.typeNumber = me.getMinTypeNumber();
+
 		// still no type number, use 10
 		if (me.typeNumber == -1)
 			me.typeNumber = 10;
 
 		me.qrModuleCount = this.typeNumber * 4 + 17; // = no of blocks required
 
-		me.width = me.qrBlocksize * me.qrModuleCount; // required width in pixels
-		me.height = me.width; // qrs are always qadratic
+		me.width = me.qrBlocksize * me.qrModuleCount; // required panel width in pixels
+		me.height = me.width; // QRs are always qadratic
 
 		// use relative size when rendering into DIVs
 		if (me.qrRenderMethod == 'divs')
 			me.qrBlocksize = (100.0 / me.qrModuleCount) + '%'; // specify width in percent
 
-		me.bodyStyle = 'border:none;'; // no border around body
+		me.bodyStyle = 'border:none;'; // no frills
 
 	}, // initComponent : function () {
 
@@ -1926,17 +1928,28 @@ Ext.define('Ext.ux.QrPanel', {
 
 		var me = this;
 
-		me.callParent();
+		me.callParent(arguments);
 
-		// adapt height when title is defined
-		if (me.title)
-			me.setHeight(me.height + me.header.getHeight());
+		// adapt panel overall height in case a header is defined
+		if (me.header) {
+
+			// wait until header box size is set
+			// this event is new in Ext 4.1
+			me.header.on('boxready', function () {
+
+				// add panel header height to overall height
+				me.setHeight(me.height + me.header.getHeight());
+
+			}, me);
+
+		}
 
 		// what render method is chosen?
-		if (me.qrRenderMethod == 'divs') {
+		switch (me.qrRenderMethod) {
 
+		case 'divs':
 			//
-			// render as DIVs:
+			// render QR as a series of HTML DIVs:
 			//
 
 			// add CSS for the blocks, if not present
@@ -1963,17 +1976,19 @@ Ext.define('Ext.ux.QrPanel', {
 
 			});
 
-		} else {
+			break;
+
+		case 'canvas':
 
 			//
-			// render as CANVAS:
+			// render as HTML5 CANVAS element:
 			//
 
 			// inject a canvas & save reference
 			me.qrCanvas = Ext.DomHelper.append(me.body.dom, {
 
 					tag : 'canvas',
-					id : me.id + '-qrcanv' // allows later selection for CSS rules etc
+					id : me.id + '-qrcanv' // allows easy later selection for CSS rules etc
 
 				});
 
@@ -1995,115 +2010,50 @@ Ext.define('Ext.ux.QrPanel', {
 
 			});
 
-		} // if( me.qrRenderMethod && ( me.qrRenderMethod == 'divs') ) {
+			break;
 
-		// if not opted-out, create fullscreen code on click
+		case 'gif':
+
+			//
+			// render as GIF element:
+			//
+
+			// create the code
+			var objQRCode = qrcode(me.typeNumber, me.qrErrorCorrectLevel);
+			objQRCode.addData(me.textToEncode);
+			objQRCode.make();
+
+			// create base64 encoded image markup
+			var b64 = objQRCode.createImgTag(parseInt(me.qrBlocksize), 0);
+
+			// add GIF image to panel
+			me.add({
+				xtype : 'image',
+				src : b64.split('"')[1], // extract src url from '<img src="data:image/gif;base64,R0lGO...">
+				id : me.id + '-qrgif', // allows easy later selection for CSS rules etc
+				width : '100%',
+				height : '100%'
+			});
+			break;
+
+		} // switch(me.qrRenderMethod) {
+
+		// establish click hander, if not opted-out
 		if (!me.qrNoClickHandler) {
 
-			me.body.on('click', function () {
-
-				var vpSize = Ext.getDoc().getViewSize(), // = browser window size
-				smallerDimension = (vpSize.height < vpSize.width ? vpSize.height : vpSize.width),
-				posOld = me.el.getPageBox(); // = old position & size
-
-				// create white full screen mask showing only a big QR
-				var mask = Ext.create('Ext.container.Container', {
-
-						floating : true,
-						shadow : false,
-						style : 'border:none; background-color:#fff; opacity:0',
-						width : vpSize.width,
-						height : vpSize.height
-
-					});
-
-				// this is the QR code that maximizes
-				var qr = Ext.create('Ext.ux.QrPanel', {
-
-						shadow : false,
-						preventHeader : true,
-						textToEncode : me.textToEncode,
-						typeNumber : me.typeNumber,
-						qrRenderMethod : (Ext.supports.Canvas ? 'canvas' : me.qrRenderMethod),
-						qrErrorCorrectLevel : me.qrErrorCorrectLevel,
-						qrBlocksize : Math.floor(smallerDimension / (me.qrModuleCount + 2)),
-						qrNoClickHandler : true
-
-					});
-
-				// place it on small version
-				qr.setSize({
-					width : posOld.width,
-					height : posOld.height
-				});
-
-				qr.setPosition(posOld.left, posOld.top);
-
-				// add and show
-				mask.add(qr);
-				mask.show();
-
-				var duration = 600; // = 0.6 second transitions
-
-				// reusable terminator function
-				var terminate = function () {
-
-					// have a smooth end too
-					qr.animate({
-						duration : duration,
-						to : {
-							opacity : 0,
-							width : posOld.width,
-							height : posOld.height,
-							top : posOld.top,
-							left : posOld.left
-						}
-					});
-
-					mask.el.fadeOut({
-
-						duration : duration,
-						remove : true
-
-					});
-
-				}; // var terminate = function() {
-
-				// we like it smooth...
-				mask.el.fadeIn({
-					duration : duration,
-					callback : function () {
-
-						// click || keypress = end fullscreen
-						mask.focus();
-						mask.mon(mask.el, 'click', terminate);
-						mask.mon(Ext.getDoc(), 'keypress', terminate);
-
-					}
-				});
-
-				qr.animate({
-					duration : duration,
-					to : {
-						opacity : 1,
-						width : qr.qrBlocksize * me.qrModuleCount,
-						height : qr.qrBlocksize * me.qrModuleCount,
-						top : qr.qrBlocksize,
-						left : (vpSize.width - qr.qrBlocksize * me.qrModuleCount) / 2
-					}
-				});
-
-			}); // me.body.on('click', function()
+			// display fullscreen QR code when clicked
+			me.body.on('click', me.onQRClick, me);
 
 		}; // if(! me.qrNoClickHandler)
 
 	}, // afterRender : function () {
 
-	// release CSS ressources
-	destroy : function () {
+	// free ressources when destroyed
+	onDestroy : function () {
 
 		var me = this;
-		me.callParent();
+
+		me.callParent(arguments);
 
 		// remove the now obsolete CSS rules, if any
 		if (me.qrCssId) {
@@ -2113,7 +2063,7 @@ Ext.define('Ext.ux.QrPanel', {
 
 		}
 
-	}, // destroy : function () {
+	}, // onDestroy : function () {
 
 	// find minimum Type Number for a string or me.textToEncode
 	getMinTypeNumber : function (text) {
@@ -2122,7 +2072,7 @@ Ext.define('Ext.ux.QrPanel', {
 		if (!text)
 			text = this.textToEncode;
 
-		// currently only for this level
+		// currently available only for this level
 		if (this.qrErrorCorrectLevel == 'L') {
 
 			if (text.length < 18)
@@ -2159,6 +2109,148 @@ Ext.define('Ext.ux.QrPanel', {
 
 		return -1; // = can't find out
 
-	} // getMinTypeNumber: function( text ) {
+	}, // getMinTypeNumber: function( text ) {
 
-});
+	// handle click into QRcode
+	onQRClick : function () {
+
+		var me = this,
+		vpSize = Ext.getDoc().getViewSize(), // = browser window size
+		smallerDimension = (vpSize.height < vpSize.width ? vpSize.height : vpSize.width),
+		posOld = me.el.getPageBox(); // = current QR code position & size
+
+		// create white full screen mask showing only a big QR
+		// opacity is set later by fadeIn()
+		// mask size is VP size, not document size!
+		var mask = Ext.create('Ext.container.Container', {
+
+				floating : true,
+				shadow : false,
+				style : 'border:none; background-color:#fff; opacity:0;',
+				width : vpSize.width,
+				height : vpSize.height
+
+			});
+
+		// this is the QR code that maximizes
+		var qrFullscreen = Ext.create('Ext.ux.QrPanel', {
+
+				shadow : false,
+				preventHeader : true,
+				textToEncode : me.textToEncode,
+				typeNumber : me.typeNumber,
+				qrRenderMethod : (Ext.supports.Canvas ? 'canvas' : me.qrRenderMethod),
+				qrErrorCorrectLevel : me.qrErrorCorrectLevel,
+				qrBlocksize : Math.floor(smallerDimension / (me.qrModuleCount + 2)),
+				qrNoClickHandler : true
+
+			});
+
+		// place it on small version
+		qrFullscreen.setSize({
+			width : posOld.width,
+			height : posOld.height
+		});
+
+		qrFullscreen.setPosition(posOld.left, posOld.top);
+
+		// add QR and show it
+		mask.add(qrFullscreen);
+		mask.show();
+
+		// use 0.5 second transitions
+		var duration = 500; 
+
+		// reusable fullscreen terminator function
+		var terminate = function () {
+
+			// have a smooth end too
+			qrFullscreen.animate({
+				duration : duration,
+				to : {
+					opacity : 0,
+					width : posOld.width,
+					height : posOld.height,
+					top : posOld.top,
+					left : posOld.left
+				}
+			});
+
+			// unmask old content
+			mask.el.fadeOut({
+
+				duration : duration,
+				callback : function () {
+					// remove mask from DOM tree after fade
+					mask.destroy();
+
+				}
+
+			});
+
+		}; // var terminate = function() {
+
+		// calc left position of the final qr
+		var posleft = (vpSize.width - qrFullscreen.qrBlocksize * me.qrModuleCount) / 2;
+
+		// we like it smooth...
+		mask.el.fadeIn({
+			duration : duration,
+			callback : function () {
+
+				// click || keypress = end fullscreen display
+				mask.focus();
+				mask.mon(mask.el, 'click', terminate);
+				mask.mon(Ext.getDoc(), 'keypress', terminate);
+
+				// show readable textToEncode?
+				if (me.qrDisplayTextWhenFullscreen) {
+
+					// CSS in all cases
+					var style = 'position:absolute; text-align:center; overflow:hidden; opacity:0; ';
+
+					// display textToEncode left or below?
+					if (smallerDimension == vpSize.height) {
+						// display to the left
+						style += 'top:45%; left:20px; width:' + (posleft - 30) + 'px; margin:auto;';
+					} else {
+						// display below
+						style += 'top:' + ((qr.qrBlocksize + 2) * me.qrModuleCount) + 'px; left:5%; width:90%;';
+
+					}
+
+					// create text
+					var text = Ext.String.htmlEncode(me.textToEncode);
+
+					// turn URLs into clickable links
+					if (me.textToEncode.substr(0, 7) == 'http://')
+						text = '<a target="_blank" href="' + me.textToEncode + '">' + text + '</a>';
+
+					// insert text
+					mask.el.appendChild(Ext.DomHelper.createDom({
+							tag : 'div',
+							style : style,
+							html : text
+						})).fadeIn();
+
+				} // if( me.qrDisplayTextWhenFullscreen ) {
+
+			} // callback : function ()
+
+		}); // mask.el.fadeIn({
+
+		// animate QR growth
+		qrFullscreen.animate({
+			duration : duration,
+			to : {
+				opacity : 1,
+				width : qrFullscreen.qrBlocksize * me.qrModuleCount,
+				height : qrFullscreen.qrBlocksize * me.qrModuleCount,
+				top : qrFullscreen.qrBlocksize,
+				left : posleft
+			}
+		});
+
+	} // onClick: function() {
+
+}); // Ext.define('Ext.ux.QrPanel', {
