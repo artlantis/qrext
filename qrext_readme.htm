@@ -6,9 +6,11 @@
 	<title>qrext: QR codes with ExtJS readme</title>
 	<style type="text/css">
 		body, h1, h2, p, th, li { padding:0.5em; font-size: 9pt; font-family: Verdana;}
-		body { width:760px; }
+		body { width:800px; }
 		h1 { font-size:14pt; }
 		h1, h2 { background-color:#eee}
+		td  { vertical-align:top;}
+		td  li, li li { padding: 0; }
 	</style>
 </head>
 <body>
@@ -28,6 +30,13 @@
 <tr><th>Date</th><th>Version</th><th>Description</th></tr>
 <tr><td>5 March 2012</td><td>1.0</td><td>Initial release</td></tr>
 <tr><td>30 May 2012</td><td>1.0</td><td>added to git repo</td></tr>
+<tr><td>27 June 2012</td><td>1.1</td><td><ol>
+<li>adapted to Ext V4.1 (not tested with older versions)</li>
+<li>displays encoded text when maximized, see <code>qrDisplayTextWhenFullscreen</code> config to suppress</li>
+<li>new 3rd render method: render as GIF image when <code>qrRenderMethod = 'gif'</code></li>
+<li>extjs lib in qrext_demo.htm now loading from the internet, not locally</li>
+<li>code cosmetics</li>
+</ol></td></tr>
 <tr><td></td><td></td><td></td></tr>
 </table>
 
@@ -35,23 +44,22 @@
 <ul>
 <li>The package contains three files: 
  <ol><li>qrext.js = the JS code to be included</li>
- <li>qrext_demo.htm = example and documentation for the parameters.
-  <br/>It expects to be in the same directory as qrext.js and ../ext/ext-all.js in a sibling-directory.
- </li>
+ <li>qrext_demo.htm = example and documentation for the parameters.</li>
  <li>qrext_readme.htm = this file.</li> 
  </ol>
+ Just save/unpack into a local directory and open qrext_demo.htm, no webserver required.
 </li>
-<li>To create QR codes with ExtJS load qrext.js after extjs was loaded: 
+<li>To create QR codes with ExtJS load qrext.js after extjs: 
 <br/>&nbsp;<code>&lt;script type="text/javascript" src="qrext.js"&gt;&lt;/script&gt;</code>
-<br/><br/>You can use any directory structure, as long as your visitors browser find the file. There are no external dependencies from within the extension.</li>
+<br/><br/>You can use any directory structure, as long as your visitors browser finds the file. There are no external dependencies from within the extension.</li>
 <li>qrext is derived from the Ext.panel.Panel class. Most configs, properties and methods of the panel class should work with qrext too.<br/>
 You can embed it just like any other panel in containers, panels, windows, viewports, tabs etc.<br/>
 See qrext_demo.htm included in the package for examples and parameter description.</li>
 <li>The QR codes scale on click to the maximum size possible and mask the page to achive maximum reading performance.
 On a second click or a keypress they shrink back to their original size and position.
 <br/>You can prevent this by specifying <code>qrNoClickHandler= true</code></li>
-<li>The extension creates QRs by rendering into an HTML canvas or as a series of colored DIVs.<br/><br/>
-	Pros &amp; cons of both methods:<br/>
+<li>The extension creates QRs by rendering into an HTML canvas, as a GIF or as a series of colored DIVs.<br/><br/>
+	Pros &amp; cons:<br/>
 	<br/>DIV rendering:
 	<ul style="list-style-type:none">
 	<li>+ works even on older, non canvas-aware browsers</li>
@@ -61,16 +69,18 @@ On a second click or a keypress they shrink back to their original size and posi
 	<li>- slower</li>
 	<li>- can lead to large DOM trees</li>
 	</ul>
-	<br/>CANVAS rendering:
+	<br/>CANVAS, GIF rendering:
 	<ul style="list-style-type:none">
 	<li>+ faster</li>
-	<li>+ need less memory</li>
-	<li>+ don't need CSS</li>
+	<li>+ needs less memory</li>
+	<li>+ doesn't need CSS</li>
+	<li>+ code can be copied as image</li>
 	<li>- blur when scaled</li>
 	</ul>
 	The extension prefers canvas rendering, if the browser supports it and not configured otherwise.
 </li>
-<li> Tested with ExtJS V 4.0.7 and against V4.1B3</li>
+<li> V1.0: Tested with ExtJS V 4.0.7 and against V4.1B3</li>
+<li> V1.1: Tested with ExtJS V 4.1, won't work with older versions</li>
 </ul>
 
 <h2>Useful web-ressources for QR-codes:</h2>
